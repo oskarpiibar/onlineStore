@@ -1,0 +1,31 @@
+.wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search {
+    background: transparent;
+    border: 1px solid grey;
+}
+
+.query {
+    position: relative;
+}
+
+.autocomplete {
+    border: none;
+    position: absolute;
+    z-index: -1;
+    left: 1px;
+    top: 1px;
+}
+
+.items td, #items th {
+    border: 1px solid #ddd;
+    padding: 4px;
+}
+
+.items tr:nth-child(even) {
+    background-color: #f2f2f2;
+}

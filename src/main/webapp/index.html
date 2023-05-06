@@ -1,0 +1,130 @@
+<!DOCTYPE HTML>
+<!-- Index page of the Online Book Store. -->
+
+<html lang=”en”>
+<head>
+    <title>Online Book Store</title>
+    <link href="styles.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+        let obj;
+        function httpGetAsync(theUrl){
+            let xmlHttp = new XMLHttpRequest();
+            let search = document.getElementById("search")
+            let category = search.value
+            xmlHttp.onreadystatechange = function(){
+                if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
+                    addToTable(this.responseText)
+                }
+            }
+            xmlHttp.open("GET", theUrl+category, true);
+            xmlHttp.send();
+        }
+        function loadBooks(event){
+            let search = document.getElementById("search")
+            let foundItems = document.getElementById("items")
+            if (event.keyCode === 13){
+                if (search.value.length === 0){
+                    foundItems.innerHTML = "Search field is empty"
+                } else {
+                    httpGetAsync("http://localhost:8080/onlineStore/api/items?category=")
+                }
+            }
+        }
+        function addToTable(message){
+            let table = "<table>"
+            obj = JSON.parse(message)
+            for (book in obj) {
+                let itemId = obj[book].itemID
+                table += "<tr><td>" + obj[book].shortDescription + "</td><td>" + obj[book].longDescription + "</td><td>"
+                    + obj[book].cost + "</td><td><button onclick = \"addToCart("+itemId+")\"> Add to cart </button></td>"
+            }
+            table += "</table>"
+            document.getElementById("items").innerHTML = table;
+        }
+        function addToCart(itemID){
+            fetch("http://localhost:8080/onlineStore/rest/cart", {
+                method: "POST",
+                body: JSON.stringify({
+                    "itemID": itemID,
+                    "numItems": 1
+                }),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
+            })
+                .then(function(response){
+                    if (response.ok){
+                        console.log(response.text())
+                        return response.text();
+                    }
+                    throw new Error("Something went wrong")
+                }).then(function(text) {                          // second then()
+                console.log('Request successful', text);
+                })
+                .catch(function(error) {                        // catch
+                    console.log('Request failed', error);
+                });
+            getCosts()
+
+            // let request = new XMLHttpRequest();
+            // request.onreadystatechange = function () {
+            //     getCosts();
+            // }
+            // request.open("POST", "http://localhost:8080/onlineStore/rest/cart", true);
+            // request.setRequestHeader("Content-type", "application/json");
+            // request.setRequestHeader("Accept", "application/json");
+            // let body = JSON.stringify([{item,"numItems": 1}])
+            // if (request){
+            //     request.send(body);
+            // }
+        }
+        function getCosts(){
+            let request = new XMLHttpRequest();
+            request.onreadystatechange = function(){
+                if (request.readyState === 4 && request.status === 200){
+                    let cost = 0.0
+                    cost += this.responseText
+                    document.getElementById("costs").innerText = "Total costs = " + cost + " Euros";
+                }
+            }
+            request.open("GET", "http://localhost:8080/onlineStore/api/cart/costs", true);
+            if (request){
+                request.send();
+            }
+        }
+    </script>
+</head>
+
+<body>
+<h1>Online Book Store</h1>
+<div class="wrapper">
+    <div>
+        <p>Which book category are you interested in?</p>
+        <div class="query">
+            <input class="autocomplete" disabled="disabled" id="autocomplete" type="text"/>
+            <input class="search" id="search" onkeyup="loadBooks(event)" type="text"/>
+        </div>
+    </div>
+
+    <div>
+        <p>Shopping cart</p>
+        <p id="costs">Total costs = 0.0 Euros</p>
+        <a href="./checkout.html">
+            <button>Checkout</button>
+        </a>
+    </div>
+</div>
+
+<div>
+    <h2>Found items</h2>
+    <div class="items" id="items">
+        <p>No items found so far!</p>
+    </div>
+</div>
+
+</body>
+</html>
